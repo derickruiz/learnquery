@@ -22,12 +22,6 @@ var domSelector = function(selectors) {
   if ( ! elements || elements.length === 0) {
       return [];
   } else {
-      return [].slice.call(elements);
+      return [].slice.call(elements); /* ANKI */
   }
 };
-
-for (var prop in obj) {
-    if (obj.hasOwnProperty(prop)) {
-        // Do shit here.
-    }
-}
