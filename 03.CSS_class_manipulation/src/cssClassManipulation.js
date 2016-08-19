@@ -2,7 +2,6 @@ var cssClass = (function() {
   'use strict';
 
   // code goes here
-
   function add(element, classToAdd) {
       var currentClassString = element.getAttribute('class'),
           newClassString = "";
@@ -20,7 +19,7 @@ var cssClass = (function() {
       if ( ! currentClassString || ! currentClassString.includes(classToRemove)) { /* ANKI */
           return;
       } else {
-          newClassString = currentClassString.split(classToRemove).join(" ").replace(/ +/g, " "); /* ANKI */
+          newClassString = currentClassString.split(classToRemove).join(" ").replace(/ +/g, " ");
           element.setAttribute('class', newClassString);
       }
   }
