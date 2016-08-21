@@ -30,7 +30,7 @@ function ajaxReq(url, options) {
       if (httpRequest.readyState === 4) {
           if (httpRequest.status === 200) {
               options.success.call(options.context, JSON.parse(httpRequest.responseText), httpRequest.status, httpRequest);
-          } else if (httpRequest.status === 404) {
+          } else {
               options.failure.call(options.context, httpRequest, httpRequest.status, httpRequest.responseText);
           }
           options.complete.call(options.context, httpRequest, httpRequest.status);
