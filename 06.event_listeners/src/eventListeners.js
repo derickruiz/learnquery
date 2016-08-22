@@ -4,46 +4,146 @@ var eventListener = (function() {
 
   var holder = {};
 
-  function guid() {
-      function s4() {
-          return Math.floor((1 + Math.random()) * 0x10000).toString(16).substring(1);
+  function addEventListenerList(element, eventType, method) {
+
+      function generateGuid() {
+          function s4() {
+              return Math.floor((1 + Math.random()) * 0x10000)
+              .toString(16)
+              .substring(1);
+          }
+          return s4() + s4() + '-' + s4() + '-' + s4() + '-' + s4() + '-' + s4() + s4() + s4();
       }
 
-      return s4() + s4() + '-' + s4() + '-' + s4() + '-' + s4() + '-' + s4() + s4() + s4();
+      if ( ! element.__DATA__) {
+          element.__DATA__ = generateGuid(); // assign a unique id to this element to refer to by later.
+          // assign this to the holder which we'll use later on for calling functions twice, removing them all, triggering them, etc.
+          holder[element.__DATA__] = {};
+
+          /* console.log("What's the element?", element);
+          console.log("What's the element data?", element.__DATA__); */
+      }
+
+      if ( ! holder[element.__DATA__][eventType]) {
+          holder[element.__DATA__][eventType] = [];
+      }
+
+      holder[element.__DATA__][eventType].push(method);
+
+      element.addEventListener(eventType, method);
   }
 
-  function on(element, event, method) {
-      // assign a unique id to the element
-      var guid;
+  function addEventListenerTwice(element, eventType, method) {
+      element["on" + eventType.toLowerCase()] = method;
+  }
 
-      if ( ! element["__UNIQUE__ID__"]) {
-          guid = guid();
-          element["__UNIQUE__ID__"] = guid;
+  function hasEventListener(element, eventType, method) {
+
+      var i;
+
+      if ( ! element.__DATA__ || ! holder[element.__DATA__] || ! holder[element.__DATA__][eventType]) {
+          return false;
+      }
+
+      for (i = 0; i < holder[element.__DATA__][eventType].length; i += 1) {
+          if (holder[element.__DATA__][eventType][i] === method) {
+              return true;
+          }
+      }
+
+      return false;
+  }
+
+  function removeEventFromEventList(element, eventType, method) {
+
+      var i;
+
+      if ( ! element.__DATA__ || ! holder[element.__DATA__][eventType]) {
+          return;
+      }
+
+      for (i = 0; i < holder[element.__DATA__][eventType].length; i += 1) {
+          if (holder[element.__DATA__][eventType][i] === method) {
+              holder[element.__DATA__][eventType].splice(i, i + 1);
+              i -=1;
+          }
+      }
+  }
+
+  function removeSingleEvent(element, eventType, method) {
+
+      removeEventFromEventList(element, eventType, method);
+
+      element.removeEventListener(eventType, method);
+      if (element["on" + eventType.toLowerCase()]) {
+          element["on" + eventType.toLowerCase()] = null;
+      }
+  }
+
+  function removeAllEventsOfType(element, eventType) {
+
+      var i;
+
+      if ( ! element.__DATA__ || ! holder[element.__DATA__] || ! holder[element.__DATA__][eventType]) {
+          return;
+      }
+
+      for (i = 0; i < holder[element.__DATA__][eventType].length; i += 1) {
+          console.log("holder[element.__DATA__][eventType][i]", holder[element.__DATA__][eventType][i]);
+          element.removeEventListener(eventType, holder[element.__DATA__][eventType][i]);
+      }
+
+      console.log("holder", holder);
+      console.log(holder[element.__DATA__][eventType]);
+      delete holder[element.__DATA__][eventType];
+      console.log(holder[element.__DATA__][eventType]);
+      console.log("holder", holder);
+  }
+
+  function removeAllEvents(element) {
+
+      var prop;
+
+      if ( ! element.__DATA__ || ! holder[element.__DATA__]) {
+          return;
+      }
+
+      for (prop in holder[element.__DATA__]) {
+          if (holder[element.__DATA__].hasOwnProperty(prop)) {
+              removeAllEventsOfType(element, prop);
+          }
+      }
+  }
+
+  function on(element, eventType, method) {
+      /* debugger; */
+      if ( ! hasEventListener(element, eventType, method)) {
+          addEventListenerList(element, eventType, method);
       } else {
-          guid = element["__UNIQUE__ID__"];
+          addEventListenerTwice(element, eventType, method);
       }
-
-      console.log("This element's unique identifier");
-      console.log(element["__UNIQUE__ID__"]);
-
-      if ( ! holder[guid]) {
-          holder[guid] = {};
-          holder[guid][method.toString()] = method;
-      }
-
-      element.addEventListener(event, function () {
-          Object.keys(holder[guid]).forEach(function (func) {
-              console.log("What's func?", func);
-          });
-      });
   }
 
-  function off(element, event, method) {
-      element.removeEventListener(event, method);
+  function off(element, eventType, method) {
+
+     if (typeof element !== "undefined" && typeof eventType !== "undefined" && typeof method !== "undefined") {
+         // removeSingleEvent();
+         element.removeEventListener(eventType, method);
+         return;
+      } else if (typeof element !== "undefined" && typeof eventType !== "undefined" && typeof method === "undefined") {
+
+          removeAllEventsOfType(element, eventType);
+          return;
+      } else if (typeof element !== "undefined" && typeof eventType === "undefined" && typeof method === "undefined"){
+          removeAllEvents(element);
+          return;
+      }
   }
 
   return {
       on: on,
-      off: off
+      off: off,
+      trigger: function () { },
+      delegate: function () { }
   };
 })();
