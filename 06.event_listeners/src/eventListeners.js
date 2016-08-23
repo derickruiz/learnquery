@@ -30,6 +30,9 @@ var eventListener = (function() {
 
       holder[element.__DATA__][eventType].push(method);
 
+      console.log("holder");
+      console.log(holder);
+
       element.addEventListener(eventType, method);
   }
 
@@ -38,6 +41,8 @@ var eventListener = (function() {
   }
 
   function hasEventListener(element, eventType, method) {
+
+      /* debugger; */
 
       var i;
 
@@ -54,7 +59,7 @@ var eventListener = (function() {
       return false;
   }
 
-  function removeEventFromEventList(element, eventType, method) {
+  function removeSingleEvent(element, eventType, method) {
 
       var i;
 
@@ -64,20 +69,17 @@ var eventListener = (function() {
 
       for (i = 0; i < holder[element.__DATA__][eventType].length; i += 1) {
           if (holder[element.__DATA__][eventType][i] === method) {
-              holder[element.__DATA__][eventType].splice(i, i + 1);
+              console.log("Yep, the method is the same");
+              console.log("holder[element.__DATA__][eventType] - before splice", holder[element.__DATA__][eventType]);
+              holder[element.__DATA__][eventType].splice(i, 1);
+              console.log("holder[element.__DATA__][eventType] - after splice", holder[element.__DATA__][eventType]);
               i -=1;
           }
       }
-  }
-
-  function removeSingleEvent(element, eventType, method) {
-
-      removeEventFromEventList(element, eventType, method);
 
       element.removeEventListener(eventType, method);
-      if (element["on" + eventType.toLowerCase()]) {
-          element["on" + eventType.toLowerCase()] = null;
-      }
+      element["on" + eventType.toLowerCase()] = null;
+
   }
 
   function removeAllEventsOfType(element, eventType) {
@@ -117,18 +119,20 @@ var eventListener = (function() {
 
   function on(element, eventType, method) {
       /* debugger; */
-      if ( ! hasEventListener(element, eventType, method)) {
+      element.addEventListener(eventType, method);
+
+      /* if ( ! hasEventListener(element, eventType, method)) {
           addEventListenerList(element, eventType, method);
       } else {
           addEventListenerTwice(element, eventType, method);
-      }
+      } */
   }
 
   function off(element, eventType, method) {
 
      if (typeof element !== "undefined" && typeof eventType !== "undefined" && typeof method !== "undefined") {
-         // removeSingleEvent();
-         element.removeEventListener(eventType, method);
+         /* debugger; */
+         removeSingleEvent(element, eventType, method);
          return;
       } else if (typeof element !== "undefined" && typeof eventType !== "undefined" && typeof method === "undefined") {
 
@@ -142,8 +146,6 @@ var eventListener = (function() {
 
   return {
       on: on,
-      off: off,
-      trigger: function () { },
-      delegate: function () { }
+      off: off
   };
 })();

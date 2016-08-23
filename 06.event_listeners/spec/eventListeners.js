@@ -46,8 +46,10 @@ describe('EventListeners', function() {
 
 
   it('should be able to add the same callback for two different events to an HTML element', function() {
-    eventListener.on(selectedElement, 'click', methods.showLove);
-    eventListener.on(selectedElement, 'hover', methods.showLove);
+
+      eventListener.on(selectedElement, 'click', methods.showLove);
+      eventListener.on(selectedElement, 'hover', methods.showLove);
+
 
     $selectedElement.trigger('click');
     $selectedElement.trigger('hover');
