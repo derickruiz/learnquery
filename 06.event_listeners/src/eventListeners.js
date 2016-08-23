@@ -4,6 +4,25 @@ var eventListener = (function() {
 
   var holder = {};
 
+  function checkIfMethodExists(element, method) {
+
+      var i;
+
+      console.log("typeof holder[element.__DATA__]['methods']");
+      console.log(typeof holder[element.__DATA__]["methods"]);
+
+      if (typeof element.__DATA___ !== "undefined" || typeof holder[element.__DATA__]["methods"] !== "undefined") {
+
+          for (i = 0; i < holder[element.__DATA__]["methods"].length; i += 1) {
+              if (method === holder[element.__DATA__]["methods"][i]) {
+                  return i;
+              }
+          }
+      }
+
+      return false;
+  }
+
   function addEventListenerList(element, eventType, method) {
 
       function generateGuid() {
@@ -24,16 +43,23 @@ var eventListener = (function() {
           console.log("What's the element data?", element.__DATA__); */
       }
 
-      if ( ! holder[element.__DATA__][eventType]) {
-          holder[element.__DATA__][eventType] = [];
+      if ( ! holder[element.__DATA__]["methods"]) {
+          holder[element.__DATA__]["methods"] = [];
       }
 
-      holder[element.__DATA__][eventType].push(method);
+      // If the method does exist, then just add a reference and also add an event listener using the reference that already exists.
+      var indexOfMethodPossiblyAdded = checkIfMethodExists(element, method);
 
-      console.log("holder");
-      console.log(holder);
+      if (indexOfMethodPossiblyAdded !== false) {
+          holder[element.__DATA__][eventType] = indexOfMethodPossiblyAdded;
+          element.addEventListener(eventType, holder[element.__DATA__]["methods"][indexOfMethodPossiblyAdded]);
+      } else {
+          // Method doesn't exist, will need to add it to the methods array.
+          var newMethodIndex = holder[element.__DATA__]["methods"].push(method) - 1;
+          holder[element.__DATA__][eventType] = newMethodIndex;
+          element.addEventListener(eventType, holder[element.__DATA__]["methods"][newMethodIndex]);
+      }
 
-      element.addEventListener(eventType, method);
   }
 
   function addEventListenerTwice(element, eventType, method) {
@@ -42,42 +68,35 @@ var eventListener = (function() {
 
   function hasEventListener(element, eventType, method) {
 
-      /* debugger; */
+      /* console.log("typeof element.__DATA__");
+      console.log(typeof element.__DATA__);
+      console.log("typeof holder[element.__DATA__]");
+      console.log(typeof holder[element.__DATA__]);
+      console.log("typeof holder[element.__DATA__][eventType]");
+      console.log(typeof holder[element.__DATA__][eventType]); */
 
-      var i;
+      console.log("holder[element.__DATA__]");
+      console.log(holder[element.__DATA__]);
 
-      if ( ! element.__DATA__ || ! holder[element.__DATA__] || ! holder[element.__DATA__][eventType]) {
-          return false;
-      }
-
-      for (i = 0; i < holder[element.__DATA__][eventType].length; i += 1) {
-          if (holder[element.__DATA__][eventType][i] === method) {
-              return true;
-          }
+      if (typeof element.__DATA__ !== "undefined" && typeof holder[element.__DATA__] !== "undefined" && holder[element.__DATA__][eventType] >= 0) {
+          return true;
       }
 
       return false;
+
   }
 
   function removeSingleEvent(element, eventType, method) {
 
       var i;
 
-      if ( ! element.__DATA__ || ! holder[element.__DATA__][eventType]) {
+      if ( ! element.__DATA__ || ! holder[element.__DATA__]["methods"]) {
           return;
       }
 
-      for (i = 0; i < holder[element.__DATA__][eventType].length; i += 1) {
-          if (holder[element.__DATA__][eventType][i] === method) {
-              console.log("Yep, the method is the same");
-              console.log("holder[element.__DATA__][eventType] - before splice", holder[element.__DATA__][eventType]);
-              holder[element.__DATA__][eventType].splice(i, 1);
-              console.log("holder[element.__DATA__][eventType] - after splice", holder[element.__DATA__][eventType]);
-              i -=1;
-          }
-      }
+      var methodToRemove = holder[element.__DATA__][eventType];
 
-      element.removeEventListener(eventType, method);
+      element.removeEventListener(eventType, holder[element.__DATA__]["methods"][methodToRemove]);
       element["on" + eventType.toLowerCase()] = null;
 
   }
@@ -118,20 +137,19 @@ var eventListener = (function() {
   }
 
   function on(element, eventType, method) {
-      /* debugger; */
-      element.addEventListener(eventType, method);
 
-      /* if ( ! hasEventListener(element, eventType, method)) {
+      if ( ! hasEventListener(element, eventType, method)) {
           addEventListenerList(element, eventType, method);
       } else {
           addEventListenerTwice(element, eventType, method);
-      } */
+      }
   }
 
   function off(element, eventType, method) {
 
+      debugger;
+      
      if (typeof element !== "undefined" && typeof eventType !== "undefined" && typeof method !== "undefined") {
-         /* debugger; */
          removeSingleEvent(element, eventType, method);
          return;
       } else if (typeof element !== "undefined" && typeof eventType !== "undefined" && typeof method === "undefined") {
